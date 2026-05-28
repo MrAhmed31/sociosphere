@@ -93,7 +93,7 @@ class _SocietyScreenState extends State<SocietyScreen> {
         'longitude': double.tryParse(lngController.text),
         'infrastructure_details':
             'Blocks: ${blockController.text.trim()}\n${infraController.text.trim()}',
-        'is_active': true,
+        'status': 'pending',
       });
 
       if (!mounted) return;

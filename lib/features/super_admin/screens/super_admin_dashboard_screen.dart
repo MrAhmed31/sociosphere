@@ -97,98 +97,220 @@ class _SuperAdminDashboardScreenState
     }
   }
 
+  Future<void> updateSocietyStatus(
+    String id,
+    String status,
+  ) async {
+
+    try {
+
+      await supabase
+          .from('societies')
+          .update({
+            'status': status,
+          })
+          .eq('id', id);
+
+      await loadData();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          backgroundColor:
+              Colors.green,
+
+          content: Text(
+            'Society marked as $status',
+          ),
+        ),
+      );
+
+    } catch (e) {
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          backgroundColor:
+              Colors.red,
+
+          content:
+              Text(e.toString()),
+        ),
+      );
+    }
+  }
+
+  Color statusColor(
+    String status,
+  ) {
+
+    switch (status) {
+
+      case 'approved':
+        return Colors.green;
+
+      case 'pending':
+        return Colors.orange;
+
+      case 'blocked':
+        return Colors.red;
+
+      case 'rejected':
+        return Colors.red;
+
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget statCard({
     required String title,
     required String value,
     required IconData icon,
+    required Color color,
+    required String subtitle,
   }) {
 
-    return Container(
+    return AnimatedContainer(
+      duration:
+          const Duration(
+        milliseconds: 300,
+      ),
+
       padding:
-          const EdgeInsets.all(24),
+          const EdgeInsets.all(28),
 
       decoration: BoxDecoration(
-        color:
-            const Color(0xFF0F172A),
 
         borderRadius:
             BorderRadius.circular(
-          24,
+          30,
+        ),
+
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+
+          colors: [
+
+            color.withOpacity(0.22),
+
+            const Color(
+              0xFF0F172A,
+            ),
+          ],
         ),
 
         border: Border.all(
           color:
-              const Color(
-            0xFF1E293B,
-          ),
+              color.withOpacity(0.25),
         ),
+
+        boxShadow: [
+
+          BoxShadow(
+            color:
+                color.withOpacity(
+              0.12,
+            ),
+
+            blurRadius: 30,
+            spreadRadius: 1,
+            offset:
+                const Offset(0, 12),
+          ),
+        ],
       ),
 
-      child: Row(
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
         children: [
 
-          Container(
-            padding:
-                const EdgeInsets.all(
-              16,
-            ),
+          Row(
+            mainAxisAlignment:
+                MainAxisAlignment
+                    .spaceBetween,
 
-            decoration: BoxDecoration(
-              color:
-                  const Color(
-                0xFF2563EB,
-              ).withOpacity(0.15),
+            children: [
 
-              borderRadius:
-                  BorderRadius.circular(
-                18,
+              Container(
+                padding:
+                    const EdgeInsets.all(
+                  16,
+                ),
+
+                decoration:
+                    BoxDecoration(
+                  color:
+                      color.withOpacity(
+                    0.16,
+                  ),
+
+                  borderRadius:
+                      BorderRadius.circular(
+                    18,
+                  ),
+                ),
+
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 32,
+                ),
               ),
-            ),
 
-            child: Icon(
-              icon,
-              color:
-                  const Color(
-                0xFF38BDF8,
+              Icon(
+                Icons.trending_up,
+                color:
+                    Colors.greenAccent
+                        .shade200,
               ),
-              size: 30,
+            ],
+          ),
+
+          const Spacer(),
+
+          Text(
+            value,
+
+            style:
+                const TextStyle(
+              color: Colors.white,
+              fontSize: 40,
+              fontWeight:
+                  FontWeight.bold,
+              letterSpacing: -1,
             ),
           ),
 
-          const SizedBox(width: 18),
+          const SizedBox(height: 8),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start,
+          Text(
+            title,
 
-              children: [
+            style:
+                const TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight:
+                  FontWeight.w600,
+            ),
+          ),
 
-                Text(
-                  value,
+          const SizedBox(height: 6),
 
-                  style:
-                      const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
+          Text(
+            subtitle,
 
-                const SizedBox(height: 4),
-
-                Text(
-                  title,
-
-                  style:
-                      const TextStyle(
-                    color:
-                        Colors.white54,
-                  ),
-                ),
-              ],
+            style:
+                const TextStyle(
+              color:
+                  Colors.white54,
+              height: 1.4,
             ),
           ),
         ],
@@ -214,66 +336,180 @@ class _SuperAdminDashboardScreenState
 
         children: [
 
-          /// HEADER
+          /// PREMIUM HEADER
           Container(
             width: double.infinity,
 
             padding:
                 const EdgeInsets.all(
-              32,
+              36,
             ),
 
             decoration: BoxDecoration(
               borderRadius:
                   BorderRadius.circular(
-                30,
+                34,
               ),
 
               gradient:
                   const LinearGradient(
+                begin:
+                    Alignment.topLeft,
+
+                end:
+                    Alignment.bottomRight,
+
                 colors: [
+
                   Color(0xFF2563EB),
+
+                  Color(0xFF1E40AF),
+
                   Color(0xFF0F172A),
                 ],
               ),
+
+              boxShadow: [
+
+                BoxShadow(
+                  color:
+                      Colors.blue
+                          .withOpacity(
+                    0.25,
+                  ),
+
+                  blurRadius: 40,
+                  offset:
+                      const Offset(
+                    0,
+                    20,
+                  ),
+                ),
+              ],
             ),
 
-            child: const Column(
+            child: Column(
               crossAxisAlignment:
                   CrossAxisAlignment
                       .start,
 
               children: [
 
-                Text(
+                Row(
+                  children: [
+
+                    Container(
+                      padding:
+                          const EdgeInsets
+                              .all(18),
+
+                      decoration:
+                          BoxDecoration(
+                        color:
+                            Colors.white
+                                .withOpacity(
+                          0.12,
+                        ),
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          20,
+                        ),
+                      ),
+
+                      child: const Icon(
+                        Icons.admin_panel_settings,
+                        color:
+                            Colors.white,
+                        size: 42,
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+
+                      decoration:
+                          BoxDecoration(
+                        color:
+                            Colors.green
+                                .withOpacity(
+                          0.18,
+                        ),
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          20,
+                        ),
+                      ),
+
+                      child: const Row(
+                        children: [
+
+                          Icon(
+                            Icons.circle,
+                            color:
+                                Colors.greenAccent,
+                            size: 12,
+                          ),
+
+                          SizedBox(width: 8),
+
+                          Text(
+                            'System Active',
+
+                            style:
+                                TextStyle(
+                              color:
+                                  Colors.white,
+
+                              fontWeight:
+                                  FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                const Text(
                   'Super Admin Control Center',
 
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 38,
+                    fontSize: 42,
                     fontWeight:
                         FontWeight.bold,
+                    letterSpacing: -1,
                   ),
                 ),
 
-                SizedBox(height: 14),
+                const SizedBox(height: 16),
 
-                Text(
-                  'Monitor platform analytics, societies, residents and overall system management.',
+                const Text(
+                  'Enterprise platform governance, analytics and complete ecosystem monitoring for SocioSphere.',
 
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 16,
-                    height: 1.5,
+                    height: 1.6,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 34),
 
-          /// STATS
+          /// ANALYTICS CARDS
           LayoutBuilder(
             builder:
                 (context, constraints) {
@@ -298,10 +534,10 @@ class _SuperAdminDashboardScreenState
 
                 crossAxisCount: count,
 
-                crossAxisSpacing: 18,
-                mainAxisSpacing: 18,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
 
-                childAspectRatio: 2.2,
+                childAspectRatio: 1.25,
 
                 children: [
 
@@ -315,6 +551,12 @@ class _SuperAdminDashboardScreenState
 
                     icon:
                         Icons.apartment,
+
+                    color:
+                        Colors.blue,
+
+                    subtitle:
+                        'Registered across the platform',
                   ),
 
                   statCard(
@@ -327,6 +569,12 @@ class _SuperAdminDashboardScreenState
 
                     icon:
                         Icons.admin_panel_settings,
+
+                    color:
+                        Colors.purple,
+
+                    subtitle:
+                        'Managing societies actively',
                   ),
 
                   statCard(
@@ -339,6 +587,12 @@ class _SuperAdminDashboardScreenState
 
                     icon:
                         Icons.people_alt_rounded,
+
+                    color:
+                        Colors.teal,
+
+                    subtitle:
+                        'Connected to SocioSphere',
                   ),
 
                   statCard(
@@ -351,38 +605,49 @@ class _SuperAdminDashboardScreenState
 
                     icon:
                         Icons.report_problem_rounded,
+
+                    color:
+                        Colors.orange,
+
+                    subtitle:
+                        'Platform-wide reported issues',
                   ),
                 ],
               );
             },
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
 
+          /// SOCIETY SECTION
           const Text(
             'Registered Societies',
 
             style: TextStyle(
               color: Colors.white,
-              fontSize: 30,
+              fontSize: 32,
               fontWeight:
                   FontWeight.bold,
             ),
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
 
           ...societies.map((society) {
+
+            final status =
+                society['status'] ??
+                    'pending';
 
             return Container(
               margin:
                   const EdgeInsets.only(
-                bottom: 18,
+                bottom: 20,
               ),
 
               padding:
                   const EdgeInsets.all(
-                24,
+                28,
               ),
 
               decoration: BoxDecoration(
@@ -393,7 +658,7 @@ class _SuperAdminDashboardScreenState
 
                 borderRadius:
                     BorderRadius.circular(
-                  24,
+                  30,
                 ),
 
                 border: Border.all(
@@ -402,27 +667,50 @@ class _SuperAdminDashboardScreenState
                     0xFF1E293B,
                   ),
                 ),
+
+                boxShadow: [
+
+                  BoxShadow(
+                    color:
+                        Colors.black
+                            .withOpacity(
+                      0.22,
+                    ),
+
+                    blurRadius: 18,
+                    offset:
+                        const Offset(
+                      0,
+                      10,
+                    ),
+                  ),
+                ],
               ),
 
               child: Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
+
                 children: [
 
                   Container(
                     padding:
                         const EdgeInsets
-                            .all(16),
+                            .all(18),
 
                     decoration:
                         BoxDecoration(
                       color:
-                          const Color(
-                        0xFF2563EB,
-                      ).withOpacity(0.15),
+                          Colors.blue
+                              .withOpacity(
+                        0.15,
+                      ),
 
                       borderRadius:
                           BorderRadius
                               .circular(
-                        18,
+                        20,
                       ),
                     ),
 
@@ -432,11 +720,11 @@ class _SuperAdminDashboardScreenState
                           Color(
                         0xFF38BDF8,
                       ),
-                      size: 30,
+                      size: 34,
                     ),
                   ),
 
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 22),
 
                   Expanded(
                     child: Column(
@@ -455,7 +743,7 @@ class _SuperAdminDashboardScreenState
                             color:
                                 Colors.white,
 
-                            fontSize: 22,
+                            fontSize: 24,
 
                             fontWeight:
                                 FontWeight
@@ -464,7 +752,7 @@ class _SuperAdminDashboardScreenState
                         ),
 
                         const SizedBox(
-                          height: 8,
+                          height: 10,
                         ),
 
                         Text(
@@ -476,46 +764,135 @@ class _SuperAdminDashboardScreenState
                               const TextStyle(
                             color:
                                 Colors.white70,
+
+                            height: 1.5,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 14,
+                        ),
+
+                        Text(
+                          'City: ${society['city'] ?? '-'}',
+
+                          style:
+                              const TextStyle(
+                            color:
+                                Colors.white54,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  Container(
-                    padding:
-                        const EdgeInsets
-                            .symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                  Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.end,
 
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          Colors.green
-                              .withOpacity(
-                        0.15,
+                    children: [
+
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+
+                        decoration:
+                            BoxDecoration(
+                          color:
+                              statusColor(
+                                status,
+                              ).withOpacity(
+                                0.15,
+                              ),
+
+                          borderRadius:
+                              BorderRadius.circular(
+                            18,
+                          ),
+                        ),
+
+                        child: Text(
+                          status.toUpperCase(),
+
+                          style: TextStyle(
+                            color:
+                                statusColor(
+                              status,
+                            ),
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
                       ),
 
-                      borderRadius:
-                          BorderRadius
-                              .circular(
-                        18,
+                      const SizedBox(height: 16),
+
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+
+                        children: [
+
+                          ElevatedButton(
+                            onPressed: () =>
+                                updateSocietyStatus(
+                              society['id'],
+                              'approved',
+                            ),
+
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.green,
+                            ),
+
+                            child: const Text(
+                              'Approve',
+                            ),
+                          ),
+
+                          ElevatedButton(
+                            onPressed: () =>
+                                updateSocietyStatus(
+                              society['id'],
+                              'rejected',
+                            ),
+
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.orange,
+                            ),
+
+                            child: const Text(
+                              'Reject',
+                            ),
+                          ),
+
+                          ElevatedButton(
+                            onPressed: () =>
+                                updateSocietyStatus(
+                              society['id'],
+                              'blocked',
+                            ),
+
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.red,
+                            ),
+
+                            child: const Text(
+                              'Block',
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-
-                    child: const Text(
-                      'Active',
-
-                      style: TextStyle(
-                        color:
-                            Colors.green,
-
-                        fontWeight:
-                            FontWeight.bold,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),

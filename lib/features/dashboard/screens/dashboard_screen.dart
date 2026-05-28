@@ -15,6 +15,10 @@ import 'package:sociosphere/features/emergency/screens/admin_emergency_screen.da
 import 'package:sociosphere/features/emergency/screens/resident_emergency_screen.dart';
 import 'package:sociosphere/features/resident_profile/screens/resident_profile_screen.dart';
 import 'package:sociosphere/features/super_admin/screens/super_admin_dashboard_screen.dart';
+import 'package:sociosphere/features/super_admin/screens/society_management_screen.dart';
+import 'package:sociosphere/features/super_admin/screens/admin_management_screen.dart';
+import 'package:sociosphere/features/super_admin/screens/global_complaints_screen.dart';
+import 'package:sociosphere/features/super_admin/screens/analytics_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool loading = true;
   int selectedIndex = 0;
   String role = 'resident';
+  String societyStatus = 'approved';
   List<MenuItemData> menuItems = [];
 
   @override
@@ -54,11 +59,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> loadDashboard() async {
-    await authService.ensureUserProfile();
-    role = await authService.getUserRole();
-    buildMenu();
-    if (mounted) setState(() => loading = false);
+
+  await authService.ensureUserProfile();
+
+  role = await authService.getUserRole();
+
+  final user =
+      supabase.auth.currentUser;
+
+  /// CHECK ADMIN SOCIETY STATUS
+  if (role == 'society_admin') {
+
+    try {
+
+      final society =
+          await supabase
+              .from('societies')
+              .select()
+              .eq(
+                'admin_id',
+                user?.id ?? '',
+              )
+              .maybeSingle();
+
+      if (society != null) {
+
+        societyStatus =
+            society['status'] ??
+                'pending';
+      }
+
+    } catch (e) {
+
+      debugPrint(
+        'Society Status Error: $e',
+      );
+    }
   }
+
+  buildMenu();
+
+  if (mounted) {
+    setState(() => loading = false);
+  }
+}
 
   bool get isSuperAdmin => role == 'super_admin';
 
@@ -70,20 +114,65 @@ bool get isAdmin =>
   /// SUPER ADMIN
   if (isSuperAdmin) {
 
-    menuItems = const [
+ menuItems = [
 
-      MenuItemData(
-        title: 'Super Dashboard',
-        icon: Icons.admin_panel_settings_rounded,
-        screen:
-            SuperAdminDashboardScreen(),
-      ),
-    ];
+  MenuItemData(
+    title: 'Super Dashboard',
+
+    icon:
+        Icons.space_dashboard_rounded,
+
+    screen:
+        const SuperAdminDashboardScreen(),
+  ),
+
+  MenuItemData(
+    title: 'Society Management',
+
+    icon:
+        Icons.apartment_rounded,
+
+    screen:
+        const SocietyManagementScreen(),
+  ),
+
+  MenuItemData(
+    title: 'Admin Management',
+
+    icon:
+        Icons.admin_panel_settings_rounded,
+
+    screen:
+        const AdminManagementScreen(),
+  ),
+
+  MenuItemData(
+    title: 'Global Complaints',
+
+    icon:
+        Icons.report_problem_rounded,
+
+    screen:
+        const GlobalComplaintsScreen(),
+  ),
+
+  MenuItemData(
+    title: 'Analytics',
+
+    icon:
+        Icons.analytics_rounded,
+
+    screen:
+        const AnalyticsScreen(),
+  ),
+];
 
   }
 
+
   /// SOCIETY ADMIN
-  else if (isAdmin) {
+  else if (isAdmin &&
+    societyStatus == 'approved') {
 
     menuItems = const [
 
@@ -145,6 +234,24 @@ bool get isAdmin =>
     ];
 
   }
+  /// PENDING / BLOCKED ADMIN
+else if (isAdmin &&
+    societyStatus != 'approved') {
+
+  menuItems = [
+
+    MenuItemData(
+      title: 'Approval Status',
+
+      icon:
+          Icons.pending_actions_rounded,
+
+      screen: SocietyStatusScreen(
+        status: societyStatus,
+      ),
+    ),
+  ];
+}
 
   /// RESIDENT
   else {
@@ -1248,6 +1355,187 @@ class WelcomePanel extends StatelessWidget {
           const SizedBox(height: 16),
           Text(subtitle, style: const TextStyle(color: Colors.white, fontSize: 34, fontWeight: FontWeight.bold, height: 1.2)),
         ],
+      ),
+    );
+  }
+}
+class SocietyStatusScreen
+    extends StatelessWidget {
+
+  final String status;
+
+  const SocietyStatusScreen({
+    super.key,
+    required this.status,
+  });
+
+  Color statusColor() {
+
+    switch (status) {
+
+      case 'approved':
+        return Colors.green;
+
+      case 'blocked':
+        return Colors.red;
+
+      case 'rejected':
+        return Colors.orange;
+
+      default:
+        return Colors.amber;
+    }
+  }
+
+  String statusTitle() {
+
+    switch (status) {
+
+      case 'blocked':
+        return 'Society Blocked';
+
+      case 'rejected':
+        return 'Society Rejected';
+
+      default:
+        return 'Approval Pending';
+    }
+  }
+
+  String statusMessage() {
+
+    switch (status) {
+
+      case 'blocked':
+
+        return 'Your society has been blocked by Super Admin. Please contact platform support.';
+
+      case 'rejected':
+
+        return 'Your society registration was rejected by Super Admin.';
+
+      default:
+
+        return 'Your society is waiting for approval from Super Admin.';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Center(
+      child: Container(
+        constraints:
+            const BoxConstraints(
+          maxWidth: 700,
+        ),
+
+        padding:
+            const EdgeInsets.all(40),
+
+        decoration: BoxDecoration(
+          color:
+              const Color(0xFF0F172A),
+
+          borderRadius:
+              BorderRadius.circular(
+            30,
+          ),
+
+          border: Border.all(
+            color:
+                statusColor(),
+            width: 1.5,
+          ),
+        ),
+
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+
+          children: [
+
+            Icon(
+              Icons.admin_panel_settings,
+
+              color:
+                  statusColor(),
+
+              size: 90,
+            ),
+
+            const SizedBox(height: 26),
+
+            Text(
+              statusTitle(),
+
+              style: TextStyle(
+                color:
+                    statusColor(),
+
+                fontSize: 34,
+
+                fontWeight:
+                    FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            Text(
+              statusMessage(),
+
+              textAlign:
+                  TextAlign.center,
+
+              style: const TextStyle(
+                color:
+                    Colors.white70,
+
+                fontSize: 16,
+
+                height: 1.6,
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+
+              decoration: BoxDecoration(
+                color:
+                    statusColor()
+                        .withOpacity(
+                  0.15,
+                ),
+
+                borderRadius:
+                    BorderRadius.circular(
+                  18,
+                ),
+              ),
+
+              child: Text(
+                status.toUpperCase(),
+
+                style: TextStyle(
+                  color:
+                      statusColor(),
+
+                  fontWeight:
+                      FontWeight.bold,
+
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
